@@ -59,6 +59,8 @@ body{
 .btn-ghost{color:var(--ink-soft);background:transparent;border:1px solid var(--line);}
 .btn-ghost:hover{background:rgba(255,255,255,.55);color:var(--ink);}
 .btn-mini{padding:6px 10px;font-size:.8rem;border-radius:9px;}
+.btn-danger{color:var(--bad);border-color:rgba(192,67,45,.28);}
+.btn-danger:hover{background:rgba(192,67,45,.1);color:var(--bad);}
 
 /* ---------- EDITOR ---------- */
 .wrap{position:relative;z-index:5;max-width:880px;margin:0 auto;padding:26px 20px 120px;}

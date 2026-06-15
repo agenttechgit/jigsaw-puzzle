@@ -145,6 +145,18 @@
     r.readAsText(file);
   }
 
+  function resetQuiz() {
+    if (!confirm("Đặt lại toàn bộ thiết lập? Ảnh và mọi câu hỏi hiện tại sẽ bị xoá.")) return;
+    quiz = newQuiz();
+    try { localStorage.removeItem(LS_KEY); } catch (_) {}
+    const im = $("previewImg"); im.src = ""; im.hidden = true;
+    $("dropzoneEmpty").hidden = false;
+    $("urlInput").value = ""; $("fileInput").value = "";
+    buildEditor();
+    $("saveStatus").textContent = "Đã đặt lại — bản nháp trống";
+    toast("Đã đặt lại thiết lập");
+  }
+
   function loadQuiz(obj) {
     if (!obj || typeof obj !== "object") throw new Error("bad");
     quiz = Object.assign(newQuiz(), obj);
@@ -500,6 +512,7 @@
   $("btnPlay").addEventListener("click", startPlay);
   $("btnExport").addEventListener("click", exportJSON);
   $("btnLink").addEventListener("click", makeLink);
+  $("btnReset").addEventListener("click", resetQuiz);
   $("btnImport").addEventListener("click", () => $("importFile").click());
   $("importFile").addEventListener("change", (e) => { if (e.target.files[0]) importJSON(e.target.files[0]); });
 
