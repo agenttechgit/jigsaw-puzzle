@@ -2,159 +2,110 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Ghép Hình · Puzzle Atelier</title>
-  <meta name="description" content="Trò chơi ghép hình: tải ảnh của bạn, chọn số mảnh và kiểu dáng, rồi kéo thả để ghép." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Puzzle Atelier · Bộ sưu tập trò chơi ghép hình</title>
+  <meta name="description" content="Bộ sưu tập trò chơi ghép hình: Ghép Hình cổ điển và Lật Mảnh Đố Vui." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root{
+      --paper:#ece7da;--paper-2:#e3dccb;--ink:#20312d;--ink-soft:#4a5b54;
+      --teal:#0f5e54;--teal-deep:#0a463f;--teal-glow:#2a8a7c;
+      --amber:#c9762b;--amber-deep:#a85d1c;--amber-soft:#e9b878;--cream:#fbf8f0;
+      --line:rgba(32,49,45,.14);
+      --shadow-md:0 6px 18px rgba(32,49,45,.12),0 2px 6px rgba(32,49,45,.08);
+      --shadow-lg:0 24px 60px rgba(20,40,36,.28),0 8px 20px rgba(20,40,36,.16);
+      --fd:"Fraunces",Georgia,serif;--fb:"DM Sans",system-ui,sans-serif;
+    }
+    *{box-sizing:border-box;}
+    html,body{margin:0;min-height:100%;}
+    body{font-family:var(--fb);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;padding:40px 20px;position:relative;overflow-x:hidden;
+      background:
+        radial-gradient(120% 90% at 12% 0%,#f3eee2 0%,transparent 55%),
+        radial-gradient(140% 120% at 100% 100%,#dfe3d4 0%,transparent 50%),
+        linear-gradient(160deg,var(--paper) 0%,var(--paper-2) 100%);
+      -webkit-font-smoothing:antialiased;}
+    .grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/></svg>");}
+    .blob{position:fixed;z-index:0;pointer-events:none;border-radius:50%;filter:blur(90px);opacity:.3;}
+    .b1{width:44vmax;height:44vmax;top:-16vmax;left:-12vmax;background:radial-gradient(circle,var(--teal-glow),transparent 70%);}
+    .b2{width:40vmax;height:40vmax;bottom:-18vmax;right:-12vmax;background:radial-gradient(circle,var(--amber-soft),transparent 70%);}
+    .hero{position:relative;z-index:1;text-align:center;margin-bottom:42px;animation:rise .7s cubic-bezier(.2,.8,.2,1) both;}
+    .eyebrow{font-size:.8rem;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--amber-deep);margin:0 0 12px;}
+    h1{font-family:var(--fd);font-weight:600;font-size:clamp(2.4rem,6vw,4rem);letter-spacing:-.025em;margin:0;line-height:1.02;}
+    h1 em{font-style:italic;color:var(--teal-deep);}
+    .sub{color:var(--ink-soft);font-size:1.08rem;margin:14px auto 0;max-width:520px;line-height:1.55;}
+    .cards{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;width:min(820px,100%);}
+    .card{position:relative;display:flex;flex-direction:column;text-decoration:none;color:inherit;overflow:hidden;
+      background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow-md);
+      transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s;animation:rise .7s cubic-bezier(.2,.8,.2,1) both;}
+    .card:nth-child(1){animation-delay:.08s;}
+    .card:nth-child(2){animation-delay:.16s;}
+    .card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);}
+    .art{height:170px;display:grid;place-items:center;position:relative;overflow:hidden;}
+    .art-jig{background:linear-gradient(150deg,#2a8a7c,var(--teal-deep));}
+    .art-rev{background:linear-gradient(150deg,var(--amber),var(--amber-deep));}
+    .art svg{width:88px;height:88px;color:rgba(255,255,255,.92);filter:drop-shadow(0 6px 14px rgba(0,0,0,.25));}
+    .grid-deco{position:absolute;inset:0;opacity:.16;background-size:34px 34px;
+      background-image:linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px);}
+    .body{padding:20px 22px 24px;}
+    .tag{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);}
+    .name{font-family:var(--fd);font-weight:600;font-size:1.5rem;margin:6px 0 8px;letter-spacing:-.01em;}
+    .desc{color:var(--ink-soft);font-size:.95rem;line-height:1.5;margin:0 0 16px;}
+    .go{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--amber-deep);}
+    .card-jig .go{color:var(--teal-deep);}
+    .go-arrow{transition:transform .2s;}
+    .card:hover .go-arrow{transform:translateX(5px);}
+    footer{position:relative;z-index:1;margin-top:40px;color:var(--ink-soft);font-size:.85rem;text-align:center;}
+    footer a{color:var(--teal-deep);}
+    @keyframes rise{from{opacity:0;transform:translateY(22px);}}
+    @media (max-width:640px){.cards{grid-template-columns:1fr;}}
+    @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+  </style>
 </head>
 <body>
-  <!-- Decorative atmosphere -->
-  <div class="bg-grain" aria-hidden="true"></div>
-  <div class="bg-blob blob-a" aria-hidden="true"></div>
-  <div class="bg-blob blob-b" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="blob b1" aria-hidden="true"></div>
+  <div class="blob b2" aria-hidden="true"></div>
 
-  <!-- ============ TOP BAR ============ -->
-  <header class="topbar" id="topbar" hidden>
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 3a2 2 0 0 1 4 0c0 .5.4 1 1 1h3a1 1 0 0 1 1 1v3c0 .6.5 1 1 1a2 2 0 0 1 0 4c-.5 0-1 .4-1 1v3a1 1 0 0 1-1 1h-3c-.6 0-1 .5-1 1a2 2 0 0 1-4 0c0-.5-.4-1-1-1H5a1 1 0 0 1-1-1v-3c0-.6-.5-1-1-1a2 2 0 0 1 0-4c.5 0 1-.4 1-1V5a1 1 0 0 1 1-1h3c.6 0 1-.5 1-1Z" fill="currentColor"/></svg>
-      </span>
-      <span class="brand-name" id="puzzleTitle">Ghép Hình</span>
-    </div>
-
-    <div class="stats">
-      <div class="stat">
-        <span class="stat-label">Thời gian</span>
-        <span class="stat-value" id="statTime">00:00</span>
-      </div>
-      <div class="stat">
-        <span class="stat-label">Đã ghép</span>
-        <span class="stat-value"><span id="statPlaced">0</span>/<span id="statTotal">0</span></span>
-      </div>
-      <div class="stat">
-        <span class="stat-label">Nước đi</span>
-        <span class="stat-value" id="statMoves">0</span>
-      </div>
-    </div>
-
-    <div class="actions">
-      <button class="btn btn-ghost" id="btnHint" type="button" title="Giữ để xem ảnh mờ gợi ý">👁 Gợi ý</button>
-      <button class="btn btn-ghost" id="btnShuffle" type="button">↻ Trộn lại</button>
-      <button class="btn btn-soft" id="btnNew" type="button">＋ Ván mới</button>
-    </div>
+  <header class="hero">
+    <p class="eyebrow">Puzzle Atelier</p>
+    <h1>Trò chơi <em>ghép hình</em></h1>
+    <p class="sub">Bộ sưu tập trò chơi ghép hình thủ công. Chọn một trò để bắt đầu.</p>
   </header>
 
-  <!-- ============ PLAY AREA ============ -->
-  <main class="stage" id="stage" hidden>
-    <canvas id="board"></canvas>
+  <main class="cards">
+    <a class="card card-jig" href="jigsaw/index.html">
+      <div class="art art-jig">
+        <div class="grid-deco"></div>
+        <svg viewBox="0 0 24 24"><path d="M9 3a2 2 0 0 1 4 0c0 .5.4 1 1 1h3a1 1 0 0 1 1 1v3c0 .6.5 1 1 1a2 2 0 0 1 0 4c-.5 0-1 .4-1 1v3a1 1 0 0 1-1 1h-3c-.6 0-1 .5-1 1a2 2 0 0 1-4 0c0-.5-.4-1-1-1H5a1 1 0 0 1-1-1v-3c0-.6-.5-1-1-1a2 2 0 0 1 0-4c.5 0 1-.4 1-1V5a1 1 0 0 1 1-1h3c.6 0 1-.5 1-1Z" fill="currentColor"/></svg>
+      </div>
+      <div class="body">
+        <span class="tag">Cổ điển</span>
+        <h2 class="name">Ghép Hình</h2>
+        <p class="desc">Tải ảnh, chọn số mảnh &amp; kiểu dáng, rồi kéo–thả các mảnh khớp lồi–lõm để hoàn thiện bức tranh.</p>
+        <span class="go">Chơi ngay <span class="go-arrow">→</span></span>
+      </div>
+    </a>
+
+    <a class="card card-rev" href="reveal/index.html">
+      <div class="art art-rev">
+        <div class="grid-deco"></div>
+        <svg viewBox="0 0 24 24"><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M12 3v18" stroke="currentColor" stroke-width="1.5"/><path d="M14 14h5v5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7.5" cy="7.5" r="1.6" fill="currentColor"/></svg>
+      </div>
+      <div class="body">
+        <span class="tag">Đố vui</span>
+        <h2 class="name">Lật Mảnh Đố Vui</h2>
+        <p class="desc">Ảnh bị che bởi các mảnh. Trả lời đúng câu hỏi để lật mở từng góc — đoán đúng bức tranh là thắng ngay.</p>
+        <span class="go">Chơi ngay <span class="go-arrow">→</span></span>
+      </div>
+    </a>
   </main>
 
-  <!-- ============ CREATE MODAL ============ -->
-  <div class="overlay" id="createOverlay">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal-head">
-        <h1 class="modal-title" id="modalTitle"><span class="title-icon" aria-hidden="true">🧩</span> Tạo ván ghép hình</h1>
-        <button class="modal-close" id="btnCloseModal" type="button" aria-label="Đóng" hidden>✕</button>
-      </div>
-
-      <div class="modal-body">
-        <!-- Image picker -->
-        <div class="field">
-          <span class="field-label">Ảnh của bạn</span>
-          <label class="dropzone" id="dropzone" for="fileInput">
-            <img id="previewImg" class="preview-img" alt="" hidden />
-            <div class="dropzone-empty" id="dropzoneEmpty">
-              <div class="dz-glyph" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="40" height="40"><path d="M12 16V5m0 0L8 9m4-4 4 4M5 19h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </div>
-              <p class="dz-title">Kéo & thả ảnh vào đây</p>
-              <p class="dz-sub">hoặc bấm để chọn từ máy · PNG, JPG, WEBP</p>
-            </div>
-            <input type="file" id="fileInput" accept="image/*" hidden />
-          </label>
-          <div class="url-row">
-            <input type="text" id="urlInput" class="text-input" placeholder="…hoặc dán đường dẫn ảnh (https://…)" />
-            <button class="btn btn-soft" id="btnLoadUrl" type="button">Tải</button>
-          </div>
-        </div>
-
-        <!-- Name -->
-        <div class="field">
-          <label class="field-label" for="nameInput">Tên trò chơi <span class="muted">(tuỳ chọn)</span></label>
-          <input type="text" id="nameInput" class="text-input" placeholder="Vd: Chú chó bên biển" maxlength="40" />
-        </div>
-
-        <!-- Piece count -->
-        <div class="field">
-          <span class="field-label">Số mảnh</span>
-          <div class="seg" id="countSeg" role="radiogroup" aria-label="Số mảnh">
-            <button class="seg-btn" data-count="4" type="button">4</button>
-            <button class="seg-btn" data-count="6" type="button">6</button>
-            <button class="seg-btn" data-count="9" type="button">9</button>
-            <button class="seg-btn is-active" data-count="12" type="button">12</button>
-            <button class="seg-btn" data-count="24" type="button">24</button>
-            <button class="seg-btn" data-count="48" type="button">48</button>
-            <button class="seg-btn" data-count="96" type="button">96</button>
-          </div>
-        </div>
-
-        <!-- Piece style -->
-        <div class="field">
-          <span class="field-label">Kiểu mảnh</span>
-          <div class="styles" id="styleGrid" role="radiogroup" aria-label="Kiểu mảnh">
-            <button class="style-card is-active" data-style="jigsaw" type="button">
-              <span class="style-pic" data-shape="jigsaw"></span>
-              <span class="style-name">Jigsaw</span>
-            </button>
-            <button class="style-card" data-style="star" type="button">
-              <span class="style-pic" data-shape="star"></span>
-              <span class="style-name">Sao</span>
-            </button>
-            <button class="style-card" data-style="leaf" type="button">
-              <span class="style-pic" data-shape="leaf"></span>
-              <span class="style-name">Lá</span>
-            </button>
-            <button class="style-card" data-style="square" type="button">
-              <span class="style-pic" data-shape="square"></span>
-              <span class="style-name">Vuông</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-foot">
-        <p class="hint-text" id="modalHint">Tải một ảnh để bắt đầu</p>
-        <button class="btn btn-primary" id="btnStart" type="button" disabled>
-          Bắt đầu ghép <span class="btn-arrow" aria-hidden="true">→</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ WIN MODAL ============ -->
-  <div class="overlay" id="winOverlay" hidden>
-    <div class="modal modal-win" role="dialog" aria-modal="true">
-      <div class="confetti" id="confetti" aria-hidden="true"></div>
-      <div class="win-medal" aria-hidden="true">🎉</div>
-      <h2 class="win-title">Hoàn thành!</h2>
-      <p class="win-sub" id="winSub">Bạn đã ghép xong bức tranh.</p>
-      <div class="win-stats">
-        <div class="win-stat"><span id="winTime">00:00</span><small>Thời gian</small></div>
-        <div class="win-stat"><span id="winMoves">0</span><small>Nước đi</small></div>
-        <div class="win-stat"><span id="winPieces">0</span><small>Mảnh</small></div>
-      </div>
-      <img id="winImage" class="win-image" alt="Ảnh đã ghép xong" />
-      <div class="win-actions">
-        <button class="btn btn-primary" id="btnPlayAgain" type="button">Chơi ván mới</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <script src="game.js"></script>
+  <footer>
+    Làm bằng ❤ &amp; HTML/CSS/JS thuần · <a href="https://github.com/agenttechgit/jigsaw-puzzle">Mã nguồn trên GitHub</a>
+  </footer>
 </body>
 </html>

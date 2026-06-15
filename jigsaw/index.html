@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Ghép Hình · Puzzle Atelier</title>
+  <meta name="description" content="Trò chơi ghép hình: tải ảnh của bạn, chọn số mảnh và kiểu dáng, rồi kéo thả để ghép." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Decorative atmosphere -->
+  <div class="bg-grain" aria-hidden="true"></div>
+  <div class="bg-blob blob-a" aria-hidden="true"></div>
+  <div class="bg-blob blob-b" aria-hidden="true"></div>
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar" id="topbar" hidden>
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M9 3a2 2 0 0 1 4 0c0 .5.4 1 1 1h3a1 1 0 0 1 1 1v3c0 .6.5 1 1 1a2 2 0 0 1 0 4c-.5 0-1 .4-1 1v3a1 1 0 0 1-1 1h-3c-.6 0-1 .5-1 1a2 2 0 0 1-4 0c0-.5-.4-1-1-1H5a1 1 0 0 1-1-1v-3c0-.6-.5-1-1-1a2 2 0 0 1 0-4c.5 0 1-.4 1-1V5a1 1 0 0 1 1-1h3c.6 0 1-.5 1-1Z" fill="currentColor"/></svg>
+      </span>
+      <span class="brand-name" id="puzzleTitle">Ghép Hình</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-label">Thời gian</span>
+        <span class="stat-value" id="statTime">00:00</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Đã ghép</span>
+        <span class="stat-value"><span id="statPlaced">0</span>/<span id="statTotal">0</span></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Nước đi</span>
+        <span class="stat-value" id="statMoves">0</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-ghost" id="btnHint" type="button" title="Giữ để xem ảnh mờ gợi ý">👁 Gợi ý</button>
+      <button class="btn btn-ghost" id="btnShuffle" type="button">↻ Trộn lại</button>
+      <button class="btn btn-soft" id="btnNew" type="button">＋ Ván mới</button>
+    </div>
+  </header>
+
+  <!-- ============ PLAY AREA ============ -->
+  <main class="stage" id="stage" hidden>
+    <canvas id="board"></canvas>
+  </main>
+
+  <!-- ============ CREATE MODAL ============ -->
+  <div class="overlay" id="createOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <h1 class="modal-title" id="modalTitle"><span class="title-icon" aria-hidden="true">🧩</span> Tạo ván ghép hình</h1>
+        <button class="modal-close" id="btnCloseModal" type="button" aria-label="Đóng" hidden>✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Image picker -->
+        <div class="field">
+          <span class="field-label">Ảnh của bạn</span>
+          <label class="dropzone" id="dropzone" for="fileInput">
+            <img id="previewImg" class="preview-img" alt="" hidden />
+            <div class="dropzone-empty" id="dropzoneEmpty">
+              <div class="dz-glyph" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="40" height="40"><path d="M12 16V5m0 0L8 9m4-4 4 4M5 19h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <p class="dz-title">Kéo & thả ảnh vào đây</p>
+              <p class="dz-sub">hoặc bấm để chọn từ máy · PNG, JPG, WEBP</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" hidden />
+          </label>
+          <div class="url-row">
+            <input type="text" id="urlInput" class="text-input" placeholder="…hoặc dán đường dẫn ảnh (https://…)" />
+            <button class="btn btn-soft" id="btnLoadUrl" type="button">Tải</button>
+          </div>
+        </div>
+
+        <!-- Name -->
+        <div class="field">
+          <label class="field-label" for="nameInput">Tên trò chơi <span class="muted">(tuỳ chọn)</span></label>
+          <input type="text" id="nameInput" class="text-input" placeholder="Vd: Chú chó bên biển" maxlength="40" />
+        </div>
+
+        <!-- Piece count -->
+        <div class="field">
+          <span class="field-label">Số mảnh</span>
+          <div class="seg" id="countSeg" role="radiogroup" aria-label="Số mảnh">
+            <button class="seg-btn" data-count="4" type="button">4</button>
+            <button class="seg-btn" data-count="6" type="button">6</button>
+            <button class="seg-btn" data-count="9" type="button">9</button>
+            <button class="seg-btn is-active" data-count="12" type="button">12</button>
+            <button class="seg-btn" data-count="24" type="button">24</button>
+            <button class="seg-btn" data-count="48" type="button">48</button>
+            <button class="seg-btn" data-count="96" type="button">96</button>
+          </div>
+        </div>
+
+        <!-- Piece style -->
+        <div class="field">
+          <span class="field-label">Kiểu mảnh</span>
+          <div class="styles" id="styleGrid" role="radiogroup" aria-label="Kiểu mảnh">
+            <button class="style-card is-active" data-style="jigsaw" type="button">
+              <span class="style-pic" data-shape="jigsaw"></span>
+              <span class="style-name">Jigsaw</span>
+            </button>
+            <button class="style-card" data-style="star" type="button">
+              <span class="style-pic" data-shape="star"></span>
+              <span class="style-name">Sao</span>
+            </button>
+            <button class="style-card" data-style="leaf" type="button">
+              <span class="style-pic" data-shape="leaf"></span>
+              <span class="style-name">Lá</span>
+            </button>
+            <button class="style-card" data-style="square" type="button">
+              <span class="style-pic" data-shape="square"></span>
+              <span class="style-name">Vuông</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <p class="hint-text" id="modalHint">Tải một ảnh để bắt đầu</p>
+        <button class="btn btn-primary" id="btnStart" type="button" disabled>
+          Bắt đầu ghép <span class="btn-arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ WIN MODAL ============ -->
+  <div class="overlay" id="winOverlay" hidden>
+    <div class="modal modal-win" role="dialog" aria-modal="true">
+      <div class="confetti" id="confetti" aria-hidden="true"></div>
+      <div class="win-medal" aria-hidden="true">🎉</div>
+      <h2 class="win-title">Hoàn thành!</h2>
+      <p class="win-sub" id="winSub">Bạn đã ghép xong bức tranh.</p>
+      <div class="win-stats">
+        <div class="win-stat"><span id="winTime">00:00</span><small>Thời gian</small></div>
+        <div class="win-stat"><span id="winMoves">0</span><small>Nước đi</small></div>
+        <div class="win-stat"><span id="winPieces">0</span><small>Mảnh</small></div>
+      </div>
+      <img id="winImage" class="win-image" alt="Ảnh đã ghép xong" />
+      <div class="win-actions">
+        <button class="btn btn-primary" id="btnPlayAgain" type="button">Chơi ván mới</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
