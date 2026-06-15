@@ -130,21 +130,6 @@
     if (url.length > 60000) toast("Link rất dài do ảnh nặng — khuyến nghị dùng Xuất JSON", true);
   }
 
-  function exportJSON() {
-    const blob = new Blob([JSON.stringify(quiz, null, 2)], { type: "application/json" });
-    const a = el("a", { href: URL.createObjectURL(blob), download: (quiz.title || "bo-do") + ".json" });
-    document.body.append(a); a.click(); a.remove();
-    toast("Đã xuất file JSON");
-  }
-  function importJSON(file) {
-    const r = new FileReader();
-    r.onload = () => {
-      try { loadQuiz(JSON.parse(r.result)); toast("Đã nhập bộ đố"); buildEditor(); }
-      catch (_) { toast("File không hợp lệ", true); }
-    };
-    r.readAsText(file);
-  }
-
   function resetQuiz() {
     if (!confirm("Đặt lại toàn bộ thiết lập? Ảnh và mọi câu hỏi hiện tại sẽ bị xoá.")) return;
     quiz = newQuiz();
@@ -510,11 +495,8 @@
   });
 
   $("btnPlay").addEventListener("click", startPlay);
-  $("btnExport").addEventListener("click", exportJSON);
   $("btnLink").addEventListener("click", makeLink);
   $("btnReset").addEventListener("click", resetQuiz);
-  $("btnImport").addEventListener("click", () => $("importFile").click());
-  $("importFile").addEventListener("change", (e) => { if (e.target.files[0]) importJSON(e.target.files[0]); });
 
   $("btnReplay").addEventListener("click", startPlay);
   $("btnWinReplay").addEventListener("click", () => { $("winOverlay").hidden = true; startPlay(); });
