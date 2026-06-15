@@ -90,7 +90,7 @@ body{
 textarea.text-input{resize:vertical;min-height:52px;line-height:1.4;}
 .url-row{display:flex;gap:8px;}
 
-.seg{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:5px;background:rgba(32,49,45,.06);border-radius:13px;}
+.seg{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:5px;background:rgba(32,49,45,.06);border-radius:13px;}
 .seg-btn{font-family:var(--font-display);font-weight:600;font-size:1.02rem;padding:9px 0;border:none;border-radius:9px;
   cursor:pointer;background:transparent;color:var(--ink-soft);transition:.18s;}
 .seg-btn:hover{color:var(--ink);}

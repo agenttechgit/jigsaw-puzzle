@@ -58,7 +58,7 @@
   // ============================================================
   //  MODEL
   // ============================================================
-  const COUNTS = [4, 6, 9, 12, 16];
+  const COUNTS = [4, 5, 6, 9, 12, 16];
   function newQuestion() { return { type: "one", prompt: "", options: ["", ""], answer: 0 }; }
   function newQuiz() {
     return {
@@ -69,15 +69,18 @@
   }
   let quiz = newQuiz();
 
-  // grid (cols x rows) from desired count + image aspect
+  // grid (cols x rows) from desired count + image aspect.
+  // Heavily prefer an EXACT tile total (so prime counts like 5 become a 1×5
+  // strip), then match the image aspect. No min-2 clamp — that would turn a
+  // 1×5 strip into 2×5 = 10 tiles.
   function gridFor(count, aspect) {
     let best = null;
     for (let cols = 1; cols <= count; cols++) {
       const rows = Math.max(1, Math.round(count / cols));
-      const score = Math.abs(cols * rows - count) * 2 + Math.abs(cols / rows - aspect);
+      const score = Math.abs(cols * rows - count) * 3 + Math.abs(cols / rows - aspect);
       if (!best || score < best.score) best = { cols, rows, score };
     }
-    return { cols: Math.max(2, best.cols), rows: Math.max(1, best.rows) };
+    return { cols: best.cols, rows: best.rows };
   }
 
   function aspect() {
