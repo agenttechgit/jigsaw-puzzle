@@ -68,6 +68,7 @@
     };
   }
   let quiz = newQuiz();
+  let layout = []; // current tile rectangles {x,y,w,h,z} in fractions of the image
 
   // grid (cols x rows) from desired count + image aspect.
   // Heavily prefer an EXACT tile total (so prime counts like 5 become a 1×5
@@ -88,11 +89,34 @@
     return im && im.naturalWidth ? im.naturalWidth / im.naturalHeight : 4 / 3;
   }
 
-  // keep tiles array length == cols*rows, preserving existing entries
-  function resyncTiles() {
-    const g = gridFor(quiz.count, aspect());
+  // Tile rectangles (x,y,w,h as fractions of the image; z = stacking order).
+  // Some counts use a special arrangement; otherwise a uniform cols×rows grid.
+  function layoutFor(count, asp) {
+    if (count === 5) {
+      // 4 quadrants (each notched to free the centre) + 1 centre tile.
+      // Centre rect spans image x[0.33,0.67] y[0.30,0.70]; notches in each
+      // quadrant's LOCAL % carve out exactly that rectangle → clean partition.
+      return [
+        { x: 0,    y: 0,    w: 0.5,  h: 0.5,  z: 1, clip: "0 0, 100% 0, 100% 60%, 66% 60%, 66% 100%, 0 100%" }, // 1 TL
+        { x: 0.5,  y: 0,    w: 0.5,  h: 0.5,  z: 1, clip: "0 0, 100% 0, 100% 100%, 34% 100%, 34% 60%, 0 60%" }, // 2 TR
+        { x: 0,    y: 0.5,  w: 0.5,  h: 0.5,  z: 1, clip: "0 0, 66% 0, 66% 40%, 100% 40%, 100% 100%, 0 100%" }, // 3 BL
+        { x: 0.5,  y: 0.5,  w: 0.5,  h: 0.5,  z: 1, clip: "34% 0, 100% 0, 100% 100%, 0 100%, 0 40%, 34% 40%" }, // 4 BR
+        { x: 0.33, y: 0.30, w: 0.34, h: 0.40, z: 2 }, // 5 centre
+      ];
+    }
+    const g = gridFor(count, asp);
     quiz.cols = g.cols; quiz.rows = g.rows;
-    const total = g.cols * g.rows;
+    const out = [];
+    for (let r = 0; r < g.rows; r++)
+      for (let c = 0; c < g.cols; c++)
+        out.push({ x: c / g.cols, y: r / g.rows, w: 1 / g.cols, h: 1 / g.rows, z: 1 });
+    return out;
+  }
+
+  // recompute layout and keep tiles array length == number of tiles
+  function resyncTiles() {
+    layout = layoutFor(quiz.count, aspect());
+    const total = layout.length;
     while (quiz.tiles.length < total) quiz.tiles.push(newQuestion());
     quiz.tiles.length = total;
   }
@@ -257,11 +281,12 @@
   //  EDITOR BUILD
   // ============================================================
   function thumbStyle(i) {
-    const { cols, rows } = quiz;
-    const c = i % cols, r = Math.floor(i / cols);
-    const px = cols > 1 ? (c / (cols - 1)) * 100 : 50;
-    const py = rows > 1 ? (r / (rows - 1)) * 100 : 50;
-    return `background-image:url('${quiz.image}');background-size:${cols * 100}% ${rows * 100}%;background-position:${px}% ${py}%`;
+    const t = layout[i] || { x: 0, y: 0, w: 1, h: 1 };
+    const bgW = t.w > 0 ? 100 / t.w : 100;
+    const bgH = t.h > 0 ? 100 / t.h : 100;
+    const px = t.w < 1 ? (t.x / (1 - t.w)) * 100 : 0;
+    const py = t.h < 1 ? (t.y / (1 - t.h)) * 100 : 0;
+    return `background-image:url('${quiz.image}');background-size:${bgW}% ${bgH}%;background-position:${px}% ${py}%`;
   }
 
   function buildTileEditors() {
@@ -332,7 +357,7 @@
     if (missing > 0) toast(`Còn ${missing} mảnh chưa có đáp án — vẫn chơi được nhưng nên hoàn thiện`, true);
 
     audio(); // unlock within gesture
-    play.opened = 0; play.ended = false; play.total = quiz.cols * quiz.rows;
+    play.opened = 0; play.ended = false; play.total = quiz.tiles.length;
     $("editorView").hidden = true;
     $("playView").hidden = false;
     $("editorActions").hidden = true;
@@ -342,12 +367,15 @@
     $("playImg").src = quiz.image;
 
     const layer = $("tileLayer");
-    layer.style.gridTemplateColumns = `repeat(${quiz.cols},1fr)`;
-    layer.style.gridTemplateRows = `repeat(${quiz.rows},1fr)`;
     layer.innerHTML = "";
     quiz.tiles.forEach((q, i) => {
+      const r = layout[i];
       const t = el("button", { type: "button", class: "tile", "data-i": i },
         el("span", { class: "tile-num" }, String(i + 1)));
+      t.style.cssText =
+        `left:${(r.x * 100).toFixed(3)}%;top:${(r.y * 100).toFixed(3)}%;` +
+        `width:${(r.w * 100).toFixed(3)}%;height:${(r.h * 100).toFixed(3)}%;z-index:${r.z || 1};` +
+        (r.clip ? `clip-path:polygon(${r.clip});-webkit-clip-path:polygon(${r.clip});` : "");
       t.addEventListener("click", () => openTileQuestion(i, t));
       layer.append(t);
     });
