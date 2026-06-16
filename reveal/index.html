@@ -114,11 +114,12 @@
   <div class="overlay" id="winOverlay" hidden>
     <div class="modal modal-win" role="dialog" aria-modal="true">
       <div class="confetti" id="confetti" aria-hidden="true"></div>
-      <div class="win-medal" aria-hidden="true">🎉</div>
+      <div class="win-medal" id="winMedal" aria-hidden="true">🎉</div>
       <h2 class="win-title" id="winTitle">Chính xác!</h2>
       <p class="win-sub" id="winSub">Bạn đã đoán đúng bức tranh.</p>
       <img id="winImage" class="win-image" alt="" />
       <div class="win-actions">
+        <button class="btn btn-primary" id="btnWinGuess" type="button" hidden>🎯 Đoán bức tranh</button>
         <button class="btn btn-soft" id="btnWinReplay" type="button">Chơi lại</button>
         <button class="btn btn-primary" id="btnWinEdit" type="button">Sửa bộ đố</button>
       </div>

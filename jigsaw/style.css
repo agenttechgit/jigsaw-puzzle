@@ -24,6 +24,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; } /* beat .btn/.topbar display rules */
 
 html, body {
   margin: 0;
