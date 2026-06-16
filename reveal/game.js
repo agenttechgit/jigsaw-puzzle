@@ -507,25 +507,11 @@
     $("confetti").innerHTML = "";
     $("winMedal").textContent = "🖼️";
     $("winTitle").textContent = "Đã mở hết mảnh!";
-    $("winSub").textContent = "Mọi người đoán xem đây là gì — sẵn sàng thì bấm Xem kết quả.";
+    $("winSub").textContent = "Bạn đã thấy toàn bộ bức tranh — giờ đoán xem đây là gì nào!";
     $("winImage").src = quiz.image;
     $("winResult").hidden = true;
     setWinButtons("guess");
     $("winOverlay").hidden = false;
-  }
-
-  // final step: show the answer text (no typing needed)
-  function revealResult() {
-    play.ended = true;
-    const ans = answerText(quiz.overall);
-    $("winMedal").textContent = "🎉";
-    $("winTitle").textContent = "Kết quả";
-    $("winSub").textContent = quiz.title || "Đáp án của bức tranh:";
-    $("winResult").textContent = ans ? "👉 " + ans : "(chưa đặt đáp án)";
-    $("winResult").hidden = false;
-    setWinButtons("win");
-    makeConfetti();
-    sndWin();
   }
 
   function winGame(viaGuess) {
@@ -547,7 +533,10 @@
                   : "Chính xác! Bạn đã đoán đúng bức tranh.")
         : (quiz.title || "Bức tranh") + " đã hiện ra hoàn toàn.";
       $("winImage").src = quiz.image;
-      $("winResult").hidden = true;
+      // after guessing, also show the correct answer as a text line
+      const ans = viaGuess ? answerText(quiz.overall) : "";
+      if (ans) { $("winResult").textContent = "👉 Đáp án: " + ans; $("winResult").hidden = false; }
+      else { $("winResult").hidden = true; }
       makeConfetti();
       setWinButtons("win");
       $("winOverlay").hidden = false;
@@ -592,7 +581,10 @@
   $("btnWinReplay").addEventListener("click", () => { $("winOverlay").hidden = true; startPlay(); });
   $("btnEdit").addEventListener("click", backToEditor);
   $("btnWinEdit").addEventListener("click", backToEditor);
-  $("btnWinGuess").addEventListener("click", revealResult);
+  $("btnWinGuess").addEventListener("click", () => {
+    $("winOverlay").hidden = true;
+    showQuestion(quiz.overall, "Câu hỏi chung", true, (ok) => { if (ok) winGame(true); });
+  });
   function closeQuestion() {
     $("qOverlay").hidden = true;
     // if the whole picture is revealed and not won yet, bring back the guess prompt
