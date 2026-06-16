@@ -146,7 +146,7 @@ textarea.text-input{resize:vertical;min-height:52px;line-height:1.4;}
 @keyframes shake{10%,90%{transform:translateX(-2px);}20%,80%{transform:translateX(4px);}30%,50%,70%{transform:translateX(-7px);}40%,60%{transform:translateX(7px);}}
 
 /* ---------- OVERLAY / MODAL ---------- */
-.overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:24px;
+.overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:14px;
   background:radial-gradient(circle at 50% 30%,rgba(20,40,36,.42),rgba(20,40,36,.6));
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fade-in .3s ease both;}
 .overlay[hidden]{display:none;}
@@ -174,13 +174,16 @@ textarea.text-input{resize:vertical;min-height:52px;line-height:1.4;}
 .q-foot{display:flex;justify-content:flex-end;margin-top:16px;}
 
 /* ---------- WIN ---------- */
-.modal-win{width:min(880px,94vw);text-align:center;padding:20px 26px 18px;}
-.win-medal{font-size:2.3rem;animation:bob 2.4s ease-in-out infinite;}
+.modal-win{width:min(1180px,97vw);max-height:calc(100vh - 16px);
+  display:flex;flex-direction:column;text-align:center;padding:12px 18px 12px;}
+.win-medal{font-size:1.7rem;flex:none;line-height:1.1;animation:bob 2.4s ease-in-out infinite;}
 @keyframes bob{50%{transform:translateY(-8px) rotate(-4deg);}}
-.win-title{font-family:var(--font-display);font-size:1.65rem;font-weight:700;margin:2px 0 3px;color:var(--amber-deep);}
-.win-sub{margin:0 0 12px;color:var(--ink-soft);font-size:.95rem;}
-.win-image{width:100%;border-radius:14px;box-shadow:var(--shadow-md);margin-bottom:14px;max-height:58vh;object-fit:contain;}
-.win-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.win-title{font-family:var(--font-display);font-size:1.45rem;font-weight:700;margin:1px 0;color:var(--amber-deep);flex:none;}
+.win-sub{margin:0 0 8px;color:var(--ink-soft);font-size:.9rem;flex:none;}
+/* image grows to fill all remaining height; buttons always stay visible */
+.win-image{flex:1 1 auto;min-height:0;width:100%;border-radius:14px;box-shadow:var(--shadow-md);
+  margin-bottom:12px;object-fit:contain;}
+.win-actions{flex:none;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
 .confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:24px;}
 
 /* ---------- TOAST ---------- */
