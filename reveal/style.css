@@ -183,6 +183,10 @@ textarea.text-input{resize:vertical;min-height:52px;line-height:1.4;}
 /* image grows to fill all remaining height; buttons always stay visible */
 .win-image{flex:1 1 auto;min-height:0;width:100%;border-radius:14px;box-shadow:var(--shadow-md);
   margin-bottom:12px;object-fit:contain;}
+.win-result{flex:none;align-self:center;font-family:var(--font-display);font-weight:600;
+  font-size:clamp(1.3rem,3vw,1.95rem);color:var(--teal-deep);background:rgba(15,94,84,.1);
+  border:1px solid rgba(15,94,84,.25);border-radius:14px;padding:9px 20px;margin:0 0 12px;
+  animation:pop-in .35s cubic-bezier(.2,.9,.25,1.1) both;}
 .win-actions{flex:none;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
 .confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:24px;}
 

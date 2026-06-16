@@ -337,6 +337,14 @@
     }
     return false;
   }
+  // human-readable correct answer of a question (for the "Xem kết quả" step)
+  function answerText(q) {
+    if (!q) return "";
+    if (q.type === "text") return (q.answer || []).filter((s) => norm(s) !== "").join(" / ");
+    if (q.type === "one") return q.options[q.answer] || "";
+    if (q.type === "multi") return (q.answer || []).map((i) => q.options[i]).filter(Boolean).join(", ");
+    return "";
+  }
   function hasValidAnswer(q) {
     if (q.type === "text") return (q.answer || []).some((x) => norm(x) !== "");
     if (q.type === "one") return q.options[q.answer] != null && norm(q.options[q.answer]) !== "";
@@ -358,6 +366,7 @@
 
     audio(); // unlock within gesture
     play.opened = 0; play.ended = false; play.total = quiz.tiles.length;
+    $("winOverlay").hidden = true; $("winResult").hidden = true;
     $("editorView").hidden = true;
     $("playView").hidden = false;
     $("editorActions").hidden = true;
@@ -498,10 +507,25 @@
     $("confetti").innerHTML = "";
     $("winMedal").textContent = "🖼️";
     $("winTitle").textContent = "Đã mở hết mảnh!";
-    $("winSub").textContent = "Bạn đã thấy toàn bộ bức tranh — giờ đoán xem đây là gì nào!";
+    $("winSub").textContent = "Mọi người đoán xem đây là gì — sẵn sàng thì bấm Xem kết quả.";
     $("winImage").src = quiz.image;
+    $("winResult").hidden = true;
     setWinButtons("guess");
     $("winOverlay").hidden = false;
+  }
+
+  // final step: show the answer text (no typing needed)
+  function revealResult() {
+    play.ended = true;
+    const ans = answerText(quiz.overall);
+    $("winMedal").textContent = "🎉";
+    $("winTitle").textContent = "Kết quả";
+    $("winSub").textContent = quiz.title || "Đáp án của bức tranh:";
+    $("winResult").textContent = ans ? "👉 " + ans : "(chưa đặt đáp án)";
+    $("winResult").hidden = false;
+    setWinButtons("win");
+    makeConfetti();
+    sndWin();
   }
 
   function winGame(viaGuess) {
@@ -523,6 +547,7 @@
                   : "Chính xác! Bạn đã đoán đúng bức tranh.")
         : (quiz.title || "Bức tranh") + " đã hiện ra hoàn toàn.";
       $("winImage").src = quiz.image;
+      $("winResult").hidden = true;
       makeConfetti();
       setWinButtons("win");
       $("winOverlay").hidden = false;
@@ -567,10 +592,7 @@
   $("btnWinReplay").addEventListener("click", () => { $("winOverlay").hidden = true; startPlay(); });
   $("btnEdit").addEventListener("click", backToEditor);
   $("btnWinEdit").addEventListener("click", backToEditor);
-  $("btnWinGuess").addEventListener("click", () => {
-    $("winOverlay").hidden = true;
-    showQuestion(quiz.overall, "Câu hỏi chung", true, (ok) => { if (ok) winGame(true); });
-  });
+  $("btnWinGuess").addEventListener("click", revealResult);
   function closeQuestion() {
     $("qOverlay").hidden = true;
     // if the whole picture is revealed and not won yet, bring back the guess prompt
