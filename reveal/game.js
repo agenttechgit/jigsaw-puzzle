@@ -125,6 +125,12 @@
   //  PERSISTENCE
   // ============================================================
   const LS_KEY = "reveal-quiz-draft-v1";
+
+  // jsonbin.io public bins → short share links (#id=...). The Access Key is
+  // scoped to Bin Create + Read; public bins are read with no key. Free tier
+  // caps a bin at 100KB, so uploaded images are auto-compressed (see setImage).
+  const JSONBIN_API = "https://api.jsonbin.io/v3/b";
+  const JSONBIN_KEY = "$2a$10$iy7s4O4OAawpCPuiZubB6OfDJOcU6nhpZDfWhRNWk0gVFvChV/YEq";
   let saveT = null;
   function save() {
     clearTimeout(saveT);
@@ -144,17 +150,36 @@
   const b64e = (s) => btoa(unescape(encodeURIComponent(s)));
   const b64d = (s) => decodeURIComponent(escape(atob(s)));
 
-  function makeLink() {
+  function copyShareLink(url, msg, bad) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => toast(msg, bad), () => prompt("Sao chép link này:", url));
+    } else { prompt("Sao chép link này:", url); }
+  }
+
+  // Try a short link via jsonbin (#id=...); fall back to the long embedded link.
+  async function makeLink() {
     if (!quiz.image) { toast("Hãy tải ảnh trước khi tạo link", true); return; }
-    const payload = b64e(JSON.stringify(quiz));
-    const url = location.origin + location.pathname + "#q=" + payload;
-    navigator.clipboard?.writeText(url).then(
-      () => toast(url.length > 30000
-        ? "Đã sao chép link (khá dài — nên dùng Xuất JSON nếu gửi qua chat)"
-        : "Đã sao chép link chia sẻ vào clipboard!"),
-      () => prompt("Sao chép link này:", url)
-    );
-    if (url.length > 60000) toast("Link rất dài do ảnh nặng — khuyến nghị dùng Xuất JSON", true);
+    const base = location.origin + location.pathname;
+    const longUrl = base + "#q=" + b64e(JSON.stringify(quiz));
+    if (JSONBIN_KEY) {
+      toast("Đang tạo link ngắn…");
+      try {
+        const res = await fetch(JSONBIN_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Access-Key": JSONBIN_KEY, "X-Bin-Private": "false" },
+          body: JSON.stringify(quiz),
+        });
+        if (res.ok) {
+          const j = await res.json();
+          const id = j.metadata && j.metadata.id;
+          if (id) { const u = base + "#id=" + id; copyShareLink(u, "Đã sao chép link chia sẻ ngắn!"); return u; }
+        } else if (res.status === 403) {
+          toast("Ảnh hơi nặng — dùng link dạng dài (dự phòng)", true);
+        }
+      } catch (_) { /* offline / blocked → fall back */ }
+    }
+    copyShareLink(longUrl, "Đã sao chép link chia sẻ (dạng dài)");
+    return longUrl;
   }
 
   function resetQuiz() {
@@ -179,10 +204,36 @@
   // ============================================================
   //  IMAGE INPUT
   // ============================================================
+  // Downscale + JPEG-compress an uploaded image so the quiz fits a short link
+  // (jsonbin 100KB) and localStorage. Returns the best quality under TARGET.
+  function compressImage(img) {
+    const TARGET = 90000; // max data-URL string length (chars ≈ bytes)
+    const dims = [1400, 1200, 1000, 820, 680, 540];
+    const qs = [0.82, 0.72, 0.62, 0.52, 0.42];
+    let smallest = null;
+    for (const dim of dims) {
+      const s = Math.min(1, dim / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.max(1, Math.round(img.naturalWidth * s));
+      const h = Math.max(1, Math.round(img.naturalHeight * s));
+      const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+      const cx = cv.getContext("2d");
+      cx.fillStyle = "#fff"; cx.fillRect(0, 0, w, h); // flatten transparency for JPEG
+      cx.drawImage(img, 0, 0, w, h);
+      for (const q of qs) {
+        let url;
+        try { url = cv.toDataURL("image/jpeg", q); } catch (_) { return img.src; }
+        if (smallest === null || url.length < smallest.length) smallest = url;
+        if (url.length <= TARGET) return url;
+      }
+    }
+    return smallest || img.src;
+  }
+
   function setImage(src) {
     const img = $("previewImg");
     img.onload = () => {
-      quiz.image = src;
+      // embed uploaded files as compressed JPEG; keep remote URLs as-is (tiny)
+      quiz.image = src.startsWith("data:") ? compressImage(img) : src;
       img.hidden = false; $("dropzoneEmpty").hidden = true;
       resyncTiles(); buildTileEditors(); save();
     };
@@ -605,16 +656,28 @@
   // ============================================================
   //  BOOT  — share link → play; else draft → editor
   // ============================================================
-  function boot() {
-    const m = location.hash.match(/q=(.+)$/);
-    if (m) {
-      try { loadQuiz(JSON.parse(b64d(m[1]))); buildEditor(); startPlay(); return; }
+  async function boot() {
+    // short link: #id=<jsonbin bin id>
+    const idm = location.hash.match(/[#&]id=([^&]+)/);
+    if (idm) {
+      let record = null;
+      try {
+        const r = await fetch(JSONBIN_API + "/" + idm[1] + "/latest");
+        if (r.ok) { const j = await r.json(); record = j && j.record; }
+      } catch (_) { /* network/CORS */ }
+      if (record) { loadQuiz(record); buildEditor(); startPlay(); return; }
+      toast("Không tải được bộ đố từ link", true);
+    }
+    // legacy long link: #q=<base64 json>
+    const qm = location.hash.match(/[#&]q=(.+)$/);
+    if (qm) {
+      try { loadQuiz(JSON.parse(b64d(qm[1]))); buildEditor(); startPlay(); return; }
       catch (_) { toast("Link không hợp lệ", true); }
     }
     const draft = loadDraft();
     if (draft) { try { loadQuiz(draft); } catch (_) {} }
     buildEditor();
   }
-  window.__reveal = { get quiz() { return quiz; }, startPlay, isCorrect, loadQuiz, buildEditor };
+  window.__reveal = { get quiz() { return quiz; }, startPlay, isCorrect, loadQuiz, buildEditor, setImage, makeLink, compressImage };
   boot();
 })();
